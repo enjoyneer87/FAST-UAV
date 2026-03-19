@@ -8,4 +8,6 @@ output_file: ../../workdir/problem_outputs.xml
 model:
     missions:
         id: fastuav.performance.mission
-        file_path: ../missions/missions_multirotor_off_design.yaml  # path to the mission definition file
+        # file_path: ../missions/missions_multirotor_off_design.yaml  # path to the mission definition file
+        file_path: ../missions/missions_multirotor.yaml  # path to the mission definition file
+        

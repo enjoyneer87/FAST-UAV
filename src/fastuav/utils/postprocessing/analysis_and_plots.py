@@ -900,12 +900,17 @@ def _data_mission_decomposition(variables: VariableList, mission_name: str = "si
                     convert_units(variables[variable].value[0], variables[variable].units, "W*h")
                 )
                 category_names.append(name_split[2])
+                # 0으로 나누기 방지
+                if total_energy > 0:
+                    percentage = round(category_values[-1] / total_energy * 100, 1)
+                else:
+                    percentage = 0.0
                 categories_labels.append(
                     name_split[2]
                     + "<br>"
                     + str(int(category_values[-1]))
                     + " [Wh] ("
-                    + str(round(category_values[-1] / total_energy * 100, 1))
+                    + str(percentage)
                     + "%)"
                 )
 
@@ -941,12 +946,17 @@ def _data_route_decomposition(variables: VariableList, mission_name: str = "sizi
                     convert_units(variables[variable].value[0], variables[variable].units, "W*h")
                 )
                 category_names.append(name_split[2])
+                # 0으로 나누기 방지
+                if total_energy > 0:
+                    percentage = round(category_values[-1] / total_energy * 100, 1)
+                else:
+                    percentage = 0.0
                 categories_labels.append(
                     name_split[2]
                     + "<br>"
                     + str(int(category_values[-1]))
                     + " [Wh] ("
-                    + str(round(category_values[-1] / total_energy * 100, 1))
+                    + str(percentage)
                     + "%)"
                 )
 

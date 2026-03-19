@@ -28,15 +28,52 @@ from plotly.validators.scatter.marker import SymbolValidator
 import itertools
 # from openmdao_drivers.cmaes_driver import CMAESDriver
 
-SA_PATH = pth.join(
-    pth.dirname(pth.abspath(__file__)),
-    "..",
-    "..",
-    "..",
-    "notebooks",
-    "workdir",
-    "sensitivity_analysis",
-)
+def _resolve_sa_path():
+    """Resolve a sensible SA_PATH.
+
+    Priority:
+    1. Environment variable FASTUAV_SA_PATH (absolute)
+    2. Module-relative path (three levels up -> notebooks/workdir/sensitivity_analysis)
+    3. Common repository/cwd fallbacks:
+       - <cwd>/src/fastuav/notebooks/workdir/sensitivity_analysis
+       - <cwd>/notebooks/workdir/sensitivity_analysis
+       - <cwd>/workdir/sensitivity_analysis
+    4. Final fallback: <cwd>/workdir/sensitivity_analysis (created if missing)
+    """
+
+    # 1) env override
+    env_path = os.environ.get("FASTUAV_SA_PATH")
+    if env_path:
+        return pth.abspath(env_path)
+
+    # 2) module-based candidate (keeps backward compatibility)
+    module_candidate = pth.abspath(
+        pth.join(pth.dirname(pth.abspath(__file__)), "..", "..", "..", "notebooks", "workdir", "sensitivity_analysis")
+    )
+    if pth.exists(module_candidate):
+        return module_candidate
+
+    # 3) repo / cwd fallbacks
+    cwd = pth.abspath(os.getcwd())
+    fallbacks = [
+        pth.join(cwd, "src", "fastuav", "notebooks", "workdir", "sensitivity_analysis"),
+        pth.join(cwd, "notebooks", "workdir", "sensitivity_analysis"),
+        pth.join(cwd, "workdir", "sensitivity_analysis"),
+    ]
+    for f in fallbacks:
+        f_abs = pth.abspath(f)
+        if pth.exists(f_abs):
+            return f_abs
+
+    # 4) final fallback: create <cwd>/workdir/sensitivity_analysis and use it
+    final = pth.abspath(pth.join(cwd, "workdir", "sensitivity_analysis"))
+    # print an informative message so users know which path is used
+    print("[fastuav.sensitivity_analysis] WARNING: SA_PATH fallbacks used. Creating/using:", final)
+    return final
+
+
+# Resolved path for sensitivity analysis outputs (can be overridden with env var FASTUAV_SA_PATH)
+SA_PATH = _resolve_sa_path()
 
 
 def doe_fast(
