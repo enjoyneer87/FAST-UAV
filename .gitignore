@@ -21,6 +21,7 @@
 /src/fastuav/gui/
 /src/fastuav/notebooks/reports/
 /src/fastuav/notebooks/04_LCA.ipynb
-*.pyc
+.python-version
+**/__pycache__/*.pyc
 *.venv\
 *.venv/
