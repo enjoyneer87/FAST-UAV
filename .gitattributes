@@ -1,0 +1,38 @@
+# Normalize line endings: store LF in the repo, check out native on Windows.
+# Without this, core.autocrlf=true makes untouched files (e.g. the DJI M600
+# input XML) show up as modified with a whole-file diff.
+* text=auto
+
+# Explicit text types
+*.py    text diff=python
+*.txt   text
+*.md    text
+*.yaml  text
+*.yml   text
+*.xml   text
+*.csv   text
+*.cfg   text
+*.toml  text
+*.ipynb text
+
+# Shell scripts must keep LF even on Windows (Docker build copies them in)
+*.sh          text eol=lf
+Dockerfile    text eol=lf
+docker-compose.yml text eol=lf
+
+# Binary — never touch, never diff as text
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.xlsx  binary
+*.xls   binary
+*.pptx  binary
+*.docx  binary
+*.exe   binary
+*.dll   binary
+*.so    binary
+*.pyc   binary
+*.sql   binary
+*.zip   binary
