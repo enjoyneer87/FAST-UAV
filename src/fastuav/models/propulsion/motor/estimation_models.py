@@ -43,6 +43,8 @@ class MotorEstimationModels(om.Group):
 
         self.add_subsystem("geometry", Geometry(), promotes=["*"])
 
+        self.add_subsystem("iron_loss", IronLoss(), promotes=["*"])
+
 
 class NominalTorque(om.ExplicitComponent):
     """
@@ -223,41 +225,141 @@ class Weight(om.ExplicitComponent):
 
 class Geometry(om.ExplicitComponent):
     """
-    Computes motor geometry
+    Computes motor geometry (length and outer diameter)
     """
 
     def setup(self):
         self.add_input("models:propulsion:motor:length:reference", val=np.nan, units="m")
+        self.add_input("models:propulsion:motor:diameter:reference", val=np.nan, units="m")
         self.add_input("models:weight:propulsion:motor:mass:reference", val=np.nan, units="kg")
         self.add_input("data:weight:propulsion:motor:mass:estimated", val=np.nan, units="kg")
         self.add_output("data:propulsion:motor:length:estimated", units="m")
+        self.add_output("data:propulsion:motor:diameter:estimated", units="m")
 
     def setup_partials(self):
         self.declare_partials("*", "*", method="exact")
 
     def compute(self, inputs, outputs):
         L_mot_ref = inputs["models:propulsion:motor:length:reference"]
+        D_ext_ref = inputs["models:propulsion:motor:diameter:reference"]
         m_mot_ref = inputs["models:weight:propulsion:motor:mass:reference"]
         m_mot = inputs["data:weight:propulsion:motor:mass:estimated"]
 
-        L_mot = L_mot_ref * (m_mot / m_mot_ref) ** (1 / 3)  # [m] Motor length (estimated)
+        # L ~ m^(1/3), D ~ m^(1/3) ~ T^(1/3.5)
+        L_mot = L_mot_ref * (m_mot / m_mot_ref) ** (1.0 / 3.0)
+        D_ext = D_ext_ref * (m_mot / m_mot_ref) ** (1.0 / 3.0)
 
         outputs["data:propulsion:motor:length:estimated"] = L_mot
+        outputs["data:propulsion:motor:diameter:estimated"] = D_ext
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         L_mot_ref = inputs["models:propulsion:motor:length:reference"]
+        D_ext_ref = inputs["models:propulsion:motor:diameter:reference"]
         m_mot_ref = inputs["models:weight:propulsion:motor:mass:reference"]
         m_mot = inputs["data:weight:propulsion:motor:mass:estimated"]
 
+        # --- length partials ---
         partials["data:propulsion:motor:length:estimated",
                  "models:propulsion:motor:length:reference"
-        ] = (m_mot / m_mot_ref) ** (1 / 3)
+        ] = (m_mot / m_mot_ref) ** (1.0 / 3.0)
 
         partials["data:propulsion:motor:length:estimated",
                  "data:weight:propulsion:motor:mass:estimated"
-        ] = (1 / 3) * L_mot_ref / m_mot_ref ** (1 / 3) * m_mot ** (- 2 / 3)
+        ] = (1.0 / 3.0) * L_mot_ref / m_mot_ref ** (1.0 / 3.0) * m_mot ** (-2.0 / 3.0)
 
         partials["data:propulsion:motor:length:estimated",
                  "models:weight:propulsion:motor:mass:reference"
-        ] = - (1 / 3) * L_mot_ref * m_mot ** (1 / 3) / m_mot_ref ** (4 / 3)
+        ] = -(1.0 / 3.0) * L_mot_ref * m_mot ** (1.0 / 3.0) / m_mot_ref ** (4.0 / 3.0)
 
+        # --- diameter partials ---
+        partials["data:propulsion:motor:diameter:estimated",
+                 "models:propulsion:motor:diameter:reference"
+        ] = (m_mot / m_mot_ref) ** (1.0 / 3.0)
+
+        partials["data:propulsion:motor:diameter:estimated",
+                 "data:weight:propulsion:motor:mass:estimated"
+        ] = (1.0 / 3.0) * D_ext_ref / m_mot_ref ** (1.0 / 3.0) * m_mot ** (-2.0 / 3.0)
+
+        partials["data:propulsion:motor:diameter:estimated",
+                 "models:weight:propulsion:motor:mass:reference"
+        ] = -(1.0 / 3.0) * D_ext_ref * m_mot ** (1.0 / 3.0) / m_mot_ref ** (4.0 / 3.0)
+
+
+class IronLoss(om.ExplicitComponent):
+    """
+    Motor iron loss scaled from reference using geometric scaling law.
+    Aroua et al., eTransportation 2023, eq.15:  P_fer = KA*KR^2*P0_fer
+    For isotropic UAV outrunner scaling: KA*KR^2 = m/m_ref
+    Speed scaling (Steinmetz): P_fer(f) = Ph_ref*(f/f0) + Pc_ref*(f/f0)^2
+    where f/f0 = n/n0  (pole-pair factor cancels in the ratio)
+    """
+
+    def setup(self):
+        self.add_input("data:weight:propulsion:motor:mass:estimated", val=np.nan, units="kg")
+        self.add_input("models:weight:propulsion:motor:mass:reference", val=np.nan, units="kg")
+        # Propeller speed at takeoff (rad/s) — converted to rpm internally.
+        # Uses propeller speed (= motor speed for N_red=1 multirotor) which is
+        # computed upstream of this group and thus available without a solver loop.
+        self.add_input("data:propulsion:propeller:speed:takeoff", val=np.nan, units="rad/s")
+        self.add_input("models:propulsion:motor:iron:Ph_ref", val=np.nan, units="W")
+        self.add_input("models:propulsion:motor:iron:Pc_ref", val=np.nan, units="W")
+        self.add_input("models:propulsion:motor:iron:Ppm_ref", val=np.nan, units="W")
+        self.add_input("models:propulsion:motor:iron:segPM", val=1.0, units=None)
+        self.add_input("models:propulsion:motor:iron:n0", val=np.nan, units="rpm")
+        self.add_input("models:propulsion:motor:pole_pairs", val=7.0, units=None)
+        self.add_output("data:propulsion:motor:iron_loss:estimated", val=0.0, units="W")
+        self.declare_partials("*", "*")
+
+    def compute(self, inputs, outputs):
+        m = inputs["data:weight:propulsion:motor:mass:estimated"]
+        m_ref = inputs["models:weight:propulsion:motor:mass:reference"]
+        omega = inputs["data:propulsion:propeller:speed:takeoff"]   # [rad/s]
+        n = omega * 60.0 / (2.0 * np.pi)                           # convert to [rpm]
+        Ph0 = inputs["models:propulsion:motor:iron:Ph_ref"]
+        Pc0 = inputs["models:propulsion:motor:iron:Pc_ref"]
+        Ppm0 = inputs["models:propulsion:motor:iron:Ppm_ref"]
+        segPM = inputs["models:propulsion:motor:iron:segPM"]
+        n0 = inputs["models:propulsion:motor:iron:n0"]
+
+        KT = m / m_ref        # geometric mass scaling factor (KA*KR^2 for isotropic scaling)
+        f_ratio = n / n0      # frequency ratio (f/f0 = n/n0, pole pairs cancel)
+
+        # Total iron loss = hysteresis + stator eddy + PM eddy  (Aroua 2023 eq.15-16)
+        # PM eddy current loss scales with (f/f0)^2 and PM segmentation factor
+        outputs["data:propulsion:motor:iron_loss:estimated"] = KT * (
+            Ph0 * f_ratio + Pc0 * f_ratio ** 2 + segPM * Ppm0 * f_ratio ** 2
+        )
+
+    def compute_partials(self, inputs, partials):
+        m = inputs["data:weight:propulsion:motor:mass:estimated"]
+        m_ref = inputs["models:weight:propulsion:motor:mass:reference"]
+        omega = inputs["data:propulsion:propeller:speed:takeoff"]   # [rad/s]
+        n = omega * 60.0 / (2.0 * np.pi)                           # [rpm]
+        Ph0 = inputs["models:propulsion:motor:iron:Ph_ref"]
+        Pc0 = inputs["models:propulsion:motor:iron:Pc_ref"]
+        Ppm0 = inputs["models:propulsion:motor:iron:Ppm_ref"]
+        segPM = inputs["models:propulsion:motor:iron:segPM"]
+        n0 = inputs["models:propulsion:motor:iron:n0"]
+
+        KT = m / m_ref
+        f_ratio = n / n0
+        P_scaled = Ph0 * f_ratio + Pc0 * f_ratio ** 2 + segPM * Ppm0 * f_ratio ** 2
+
+        # d(n_rpm)/d(omega) = 30/pi  [rpm/(rad/s)]
+        dn_domega = 30.0 / np.pi
+
+        out = "data:propulsion:motor:iron_loss:estimated"
+        partials[out, "data:weight:propulsion:motor:mass:estimated"] = P_scaled / m_ref
+        partials[out, "models:weight:propulsion:motor:mass:reference"] = -KT * P_scaled / m_ref
+        # Chain rule: dP/d(omega) = dP/d(n) * d(n)/d(omega)
+        partials[out, "data:propulsion:propeller:speed:takeoff"] = KT * (
+            Ph0 / n0 + 2 * Pc0 * n / n0 ** 2 + 2 * segPM * Ppm0 * n / n0  ** 2
+        ) * dn_domega
+        partials[out, "models:propulsion:motor:iron:Ph_ref"] = KT * f_ratio
+        partials[out, "models:propulsion:motor:iron:Pc_ref"] = KT * f_ratio ** 2
+        partials[out, "models:propulsion:motor:iron:Ppm_ref"] = KT * segPM * f_ratio ** 2
+        partials[out, "models:propulsion:motor:iron:segPM"] = KT * Ppm0 * f_ratio ** 2
+        partials[out, "models:propulsion:motor:iron:n0"] = KT * (
+            -Ph0 * n / n0 ** 2 - 2 * Pc0 * n ** 2 / n0 ** 3 - 2 * segPM * Ppm0 * n ** 2 / n0 ** 3
+        )
+        partials[out, "models:propulsion:motor:pole_pairs"] = 0.0

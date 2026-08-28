@@ -216,11 +216,13 @@ data:propulsion:multirotor:motor:current:cruise || Multirotor motor current (cru
 data:propulsion:multirotor:motor:current:hover || Multirotor motor current (hover)
 data:propulsion:multirotor:motor:current:takeoff || Multirotor motor current (takeoff)
 data:propulsion:multirotor:motor:length:estimated || Multirotor motor length (estimated value)
+data:propulsion:multirotor:motor:diameter:estimated || Multirotor motor outer diameter (estimated value)
 data:propulsion:multirotor:motor:power:climb || Multirotor motor power (climb)
 data:propulsion:multirotor:motor:power:cruise || Multirotor motor power (cruise)
 data:propulsion:multirotor:motor:power:hover || Multirotor motor power (hover)
 data:propulsion:multirotor:motor:power:takeoff || Multirotor motor power (takeoff)
 models:propulsion:multirotor:motor:length:reference || Multirotor motor length reference for scaling law
+models:propulsion:multirotor:motor:diameter:reference || Multirotor motor outer diameter reference for scaling law
 models:weight:propulsion:multirotor:motor:mass:reference || Multirotor motor mass reference for scaling law
 models:propulsion:multirotor:motor:resistance:reference || Multirotor motor resistance reference for scaling law
 models:propulsion:multirotor:motor:torque:coefficient:reference || Multirotor motor torque coefficient reference for scaling law
@@ -265,6 +267,14 @@ data:propulsion:multirotor:motor:speed:cruise || Multirotor motor rotation speed
 data:propulsion:multirotor:motor:speed:climb || Multirotor motor rotation speed (climb)
 data:propulsion:multirotor:motor:speed:hover || Multirotor motor rotation speed (hover)
 data:propulsion:multirotor:motor:speed:takeoff || Multirotor motor rotation speed (takeoff)
+data:propulsion:multirotor:motor:speed:estimated || Multirotor motor design speed for iron loss calculation (rpm)
+data:propulsion:multirotor:motor:iron_loss:estimated || Multirotor motor iron loss (geometric scaling, estimated value)
+models:propulsion:multirotor:motor:iron:Ph_ref || Multirotor motor reference hysteresis loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:multirotor:motor:iron:Pc_ref || Multirotor motor reference eddy current loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:multirotor:motor:iron:Ppm_ref || Multirotor motor reference PM eddy current loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:multirotor:motor:iron:segPM || Multirotor motor PM segmentation factor for eddy current loss scaling
+models:propulsion:multirotor:motor:iron:n0 || Multirotor motor reference speed for iron loss map
+models:propulsion:multirotor:motor:pole_pairs || Number of pole pairs of multirotor reference motor
 
 # Fixed-wing system
 data:weight:propulsion:fixedwing:motor:mass || Fixed-wing motor mass
@@ -281,11 +291,13 @@ data:propulsion:fixedwing:motor:current:cruise || Fixed-wing motor current (crui
 data:propulsion:fixedwing:motor:current:hover || Fixed-wing motor current (hover)
 data:propulsion:fixedwing:motor:current:takeoff || Fixed-wing motor current (takeoff)
 data:propulsion:fixedwing:motor:length:estimated || Fixed-wing motor length (estimated value)
+data:propulsion:fixedwing:motor:diameter:estimated || Fixed-wing motor outer diameter (estimated value)
 data:propulsion:fixedwing:motor:power:climb || Fixed-wing motor power (climb)
 data:propulsion:fixedwing:motor:power:cruise || Fixed-wing motor power (cruise)
 data:propulsion:fixedwing:motor:power:hover || Fixed-wing motor power (hover)
 data:propulsion:fixedwing:motor:power:takeoff || Fixed-wing motor power (takeoff)
 models:propulsion:fixedwing:motor:length:reference || Fixed-wing motor length reference for scaling law
+models:propulsion:fixedwing:motor:diameter:reference || Fixed-wing motor outer diameter reference for scaling law
 models:weight:propulsion:fixedwing:motor:mass:reference || Fixed-wing motor mass reference for scaling law
 models:propulsion:fixedwing:motor:resistance:reference || Fixed-wing motor resistance reference for scaling law
 models:propulsion:fixedwing:motor:torque:coefficient:reference || Fixed-wing motor torque coefficient reference for scaling law
@@ -330,6 +342,14 @@ data:propulsion:fixedwing:motor:speed:cruise || Fixed-wing motor rotation speed 
 data:propulsion:fixedwing:motor:speed:climb || Fixed-wing motor rotation speed (climb)
 data:propulsion:fixedwing:motor:speed:hover || Fixed-wing motor rotation speed (hover)
 data:propulsion:fixedwing:motor:speed:takeoff || Fixed-wing motor rotation speed (takeoff)
+data:propulsion:fixedwing:motor:speed:estimated || Fixed-wing motor design speed for iron loss calculation (rpm)
+data:propulsion:fixedwing:motor:iron_loss:estimated || Fixed-wing motor iron loss (geometric scaling, estimated value)
+models:propulsion:fixedwing:motor:iron:Ph_ref || Fixed-wing motor reference hysteresis loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:fixedwing:motor:iron:Pc_ref || Fixed-wing motor reference eddy current loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:fixedwing:motor:iron:Ppm_ref || Fixed-wing motor reference PM eddy current loss at n0 (from SyRE IronPMLossMap_dq)
+models:propulsion:fixedwing:motor:iron:segPM || Fixed-wing motor PM segmentation factor for eddy current loss scaling
+models:propulsion:fixedwing:motor:iron:n0 || Fixed-wing motor reference speed for iron loss map
+models:propulsion:fixedwing:motor:pole_pairs || Number of pole pairs of fixed-wing reference motor
 
 # Propeller
 # Multirotor system

@@ -296,7 +296,9 @@ class MotorPower(om.ExplicitComponent):
 
 class MotorEfficiency(om.ExplicitComponent):
     """
-    Computes motor efficiency under given flight scenario
+    Computes motor efficiency under given flight scenario.
+    Accounts for copper loss (R*I^2) and iron loss (Aroua 2023 geometric scaling).
+    Formula: eta = P_mech / (P_mech + P_copper + P_iron)
     """
 
     def initialize(self):
@@ -304,10 +306,11 @@ class MotorEfficiency(om.ExplicitComponent):
 
     def setup(self):
         scenario = self.options["scenario"]
-        self.add_input("data:propulsion:motor:voltage:%s" % scenario, val=np.nan, units="V")
-        self.add_input("data:propulsion:motor:current:%s" % scenario, val=np.nan, units="A")
         self.add_input("data:propulsion:motor:torque:%s" % scenario, val=np.nan, units="N*m")
         self.add_input("data:propulsion:motor:speed:%s" % scenario, val=np.nan, units="rad/s")
+        self.add_input("data:propulsion:motor:resistance", val=np.nan, units="V/A")
+        self.add_input("data:propulsion:motor:current:%s" % scenario, val=np.nan, units="A")
+        self.add_input("data:propulsion:motor:iron_loss:estimated", val=0.0, units="W")
         self.add_output("data:propulsion:motor:efficiency:%s" % scenario, units=None)
 
     def setup_partials(self):
@@ -315,34 +318,34 @@ class MotorEfficiency(om.ExplicitComponent):
 
     def compute(self, inputs, outputs):
         scenario = self.options["scenario"]
-        U_mot = inputs["data:propulsion:motor:voltage:%s" % scenario]
-        I_mot = inputs["data:propulsion:motor:current:%s" % scenario]
         T_mot = inputs["data:propulsion:motor:torque:%s" % scenario]
         W_mot = inputs["data:propulsion:motor:speed:%s" % scenario]
+        R = inputs["data:propulsion:motor:resistance"]
+        I_mot = inputs["data:propulsion:motor:current:%s" % scenario]
+        P_iron = inputs["data:propulsion:motor:iron_loss:estimated"]
 
-        eta_mot = MotorPerformanceModel.efficiency(U_mot, I_mot, T_mot, W_mot)  # [-] efficiency
+        P_mech = T_mot * W_mot
+        P_loss = R * I_mot ** 2 + P_iron
+        eta_mot = P_mech / (P_mech + P_loss)  # [-] efficiency
 
         outputs["data:propulsion:motor:efficiency:%s" % scenario] = eta_mot
 
     def compute_partials(self, inputs, partials, discrete_inputs=None):
         scenario = self.options["scenario"]
-        U_mot = inputs["data:propulsion:motor:voltage:%s" % scenario]
-        I_mot = inputs["data:propulsion:motor:current:%s" % scenario]
         T_mot = inputs["data:propulsion:motor:torque:%s" % scenario]
         W_mot = inputs["data:propulsion:motor:speed:%s" % scenario]
+        R = inputs["data:propulsion:motor:resistance"]
+        I_mot = inputs["data:propulsion:motor:current:%s" % scenario]
+        P_iron = inputs["data:propulsion:motor:iron_loss:estimated"]
 
-        partials["data:propulsion:motor:efficiency:%s" % scenario,
-                 "data:propulsion:motor:voltage:%s" % scenario
-        ] = - T_mot * W_mot / (U_mot**2 * I_mot)
+        P_mech = T_mot * W_mot
+        P_loss = R * I_mot ** 2 + P_iron
+        D = P_mech + P_loss  # denominator
 
-        partials["data:propulsion:motor:efficiency:%s" % scenario,
-                 "data:propulsion:motor:voltage:%s" % scenario
-        ] = - T_mot * W_mot / (U_mot * I_mot**2)
+        out = "data:propulsion:motor:efficiency:%s" % scenario
 
-        partials["data:propulsion:motor:efficiency:%s" % scenario,
-                 "data:propulsion:motor:torque:%s" % scenario
-        ] = W_mot / (U_mot * I_mot)
-
-        partials["data:propulsion:motor:efficiency:%s" % scenario,
-                 "data:propulsion:motor:speed:%s" % scenario
-        ] = T_mot / (U_mot * I_mot)
+        partials[out, "data:propulsion:motor:torque:%s" % scenario] = W_mot * P_loss / D ** 2
+        partials[out, "data:propulsion:motor:speed:%s" % scenario] = T_mot * P_loss / D ** 2
+        partials[out, "data:propulsion:motor:resistance"] = -P_mech * I_mot ** 2 / D ** 2
+        partials[out, "data:propulsion:motor:current:%s" % scenario] = -P_mech * 2 * R * I_mot / D ** 2
+        partials[out, "data:propulsion:motor:iron_loss:estimated"] = -P_mech / D ** 2
