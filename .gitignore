@@ -40,3 +40,15 @@
 # Supply-chain DoE result exports (regenerated from the model)
 /src/fastuav/notebooks/data/source_files/supply_chain_cost_leadtime_summary.csv
 /src/fastuav/notebooks/data/source_files/supply_chain_selection_result.csv
+
+# One-off local probes (safe to delete; NOT a test suite).
+# test_mpi_doe.py in particular runs a Sobol DoE at import time, so a bare
+# `pytest` at the repo root would kick off a sizing run.
+/test_doe.py
+/test_mpi_doe.py
+/test_unc_vars.txt
+/src/fastuav/notebooks/test_mpi.py
+# One-shot notebook surgery: rewrites a hardcoded cell id in
+# 7_Supply_Chain_Integrated_UQ.ipynb via an absolute local path. The code it
+# injects already lives in the committed notebook.
+/src/fastuav/notebooks/patch_nb.py
