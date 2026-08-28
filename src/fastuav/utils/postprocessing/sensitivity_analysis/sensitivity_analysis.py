@@ -156,20 +156,23 @@ def doe_fast(
             x_list = self._x_list
             y_list = self._y_list
 
-            for x in x_list:
-                p[x] = inputs[x]
+            try:
+                for x in x_list:
+                    p[x] = inputs[x]
 
-            with open(os.devnull, "w") as f, contextlib.redirect_stdout(
-                f
-            ):  # turn off all convergence messages (including failures)
-                fail = not p.run_driver().success
+                with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+                    fail = bool(p.run_driver())
 
-            for y in y_list:
-                outputs[y] = p[y]
+                for y in y_list:
+                    outputs[y] = p[y]
 
-            if fail:
-                self._fail_count += 1
-            outputs['optim_failed'] = float(fail)
+                if fail:
+                    self._fail_count += 1
+                outputs['optim_failed'] = float(fail)
+            except Exception as e:
+                with open("D:\\debug.log", "a") as f:
+                    f.write(f"EXCEPTION: {e}\n")
+                outputs['optim_failed'] = 1.0
 
     conf = oad.FASTOADProblemConfigurator(conf_file)
     prob_definition = conf.get_optimization_definition()
@@ -268,9 +271,11 @@ def doe_fast(
         prob.driver = custom_driver
 
     # Attach recorder to the driver
-    if os.path.exists("cases.sql"):
-        os.remove("cases.sql")
-    prob.driver.add_recorder(om.SqliteRecorder("cases.sql"))
+    import uuid
+    sql_filename = f"cases_{uuid.uuid4().hex}.sql"
+    if os.path.exists(sql_filename):
+        os.remove(sql_filename)
+    prob.driver.add_recorder(om.SqliteRecorder(sql_filename))
     recorded_variables = [f'*{x}' for x in x_list + y_list]
     if nested_optimization:
         recorded_variables.append("optim_failed")
@@ -283,12 +288,19 @@ def doe_fast(
 
     # Get results from recorded cases
     df = pd.DataFrame()
-    cr = om.CaseReader("cases.sql")
+    cr = om.CaseReader(sql_filename)
     cases = cr.list_cases("driver", out_stream=None)
     for case in cases:
         values = cr.get_case(case).outputs
         # df = df.append(values, ignore_index=True)
         df = pd.concat([df, pd.DataFrame(values)], ignore_index=True)
+        
+    try:
+        del cr
+        if os.path.exists(sql_filename):
+            os.remove(sql_filename)
+    except Exception:
+        pass
 
     # for i in df.columns:
     #     df[i] = df[i].apply(lambda x: x[0])
