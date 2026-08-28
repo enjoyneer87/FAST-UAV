@@ -14,6 +14,9 @@
 /src/fastuav/models/propulsion/propeller/aerodynamics/surrogate_models_old.py
 /src/fastuav/notebooks/cases.sql
 /src/fastuav/configurations/cases.sql
+# doe_fast now names its recorder per-run (uuid) so parallel runs don't collide;
+# the file is deleted on success but survives a crash.
+cases_*.sql
 /src/fastuav/utils/postprocessing/old/*
 /dist/
 /src/fastuav.egg-info/
