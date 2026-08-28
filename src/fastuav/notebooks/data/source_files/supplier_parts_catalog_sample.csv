@@ -1,0 +1,12 @@
+part_family,part_number,supplier,supplier_region,currency,unit_cost_usd,moq,lead_time_days,stock_qty,risk_score,cad_ref_path,perf_key,perf_value,perf_unit,last_updated,source_type
+motor,SunnySky-X3520-KV520,SunnySky,CN,USD,89.0,1,28,240,0.42,D:/KangDH/fast_UAV/Quadcopter-Drone-Model-Simscape/CAD/Geometry/quadcopter_drone_motor.stp,max_torque,0.80,Nm,2026-03-19,sample
+motor,KDE4215XF-465,KDE,US,USD,219.0,1,35,75,0.25,,max_torque,1.60,Nm,2026-03-19,sample
+motor,AXI-5325-16,ModelMotors,CZ,USD,229.0,1,42,18,0.33,,max_torque,2.32,Nm,2026-03-19,sample
+esc,FMS-PREDATOR-100A,FMS,CN,USD,65.0,2,21,320,0.40,,max_power,2200,W,2026-03-19,sample
+esc,Hobbywing-Xrotor-80A,Hobbywing,CN,USD,54.0,2,18,510,0.36,,max_power,1800,W,2026-03-19,sample
+battery,PT-B10000-6S1P-35C,PowerTrust,CN,USD,169.0,1,30,60,0.48,,energy,799,kJ,2026-03-19,sample
+battery,Tattu-6S-12000mAh-25C,Tattu,CN,USD,189.0,1,24,110,0.38,,energy,959,kJ,2026-03-19,sample
+propeller,APC-13x8-EP,APC,US,USD,12.5,2,10,1200,0.22,D:/KangDH/fast_UAV/Quadcopter-Drone-Model-Simscape/CAD/Geometry/quadcopter_drone_propeller_1_4.stp,diameter,0.330,m,2026-03-19,sample
+propeller,APC-14x4.7-MR,APC,US,USD,13.8,2,12,740,0.20,,diameter,0.356,m,2026-03-19,sample
+frame_arm,CF-Tube-16x14x400,AliCarbon,CN,USD,8.0,4,20,900,0.45,D:/KangDH/fast_UAV/Quadcopter-Drone-Model-Simscape/CAD/Geometry/quadcopter_drone_arm.stp,length,0.400,m,2026-03-19,sample
+frame_plate,Quad-Plate-Top-Bottom,AliCarbon,CN,USD,24.0,1,20,430,0.46,D:/KangDH/fast_UAV/Quadcopter-Drone-Model-Simscape/CAD/Geometry/quadcopter_drone_plate_top.stp,outline,1.0,na,2026-03-19,sample

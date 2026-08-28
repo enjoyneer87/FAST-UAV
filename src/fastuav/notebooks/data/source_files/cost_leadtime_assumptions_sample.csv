@@ -1,0 +1,7 @@
+key,value,unit,description
+fx_to_usd,1.0,ratio,convert supplier currency to USD
+logistics_buffer_days,7,days,customs and inland handling buffer
+quality_buffer_ratio,0.05,ratio,extra cost for QA incoming inspection
+scrap_ratio,0.03,ratio,expected scrap/rework burden
+risk_cost_multiplier,0.15,ratio,cost penalty factor multiplied by risk_score
+critical_path_mode,max,rule,lead time aggregation rule across components

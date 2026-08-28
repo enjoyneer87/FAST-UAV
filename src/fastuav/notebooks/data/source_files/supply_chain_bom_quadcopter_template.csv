@@ -1,0 +1,6 @@
+component_id,category,quantity,unit_mass_kg,total_mass_kg,perf_ref_type,perf_ref_value,geom_ref_type,geom_ref_value,geom_ref_unit,cad_ref_path,supplier,lead_time_days,unit_cost_usd,risk_score
+battery_pack,battery,1,3.365523770792574,3.365523770792574,energy_kJ,2315.5595430998974,pack_volume_or_outline,,,,,,,
+motor,propulsion,4,0.4127685177372494,1.6510740709489975,max_torque_Nm,1.913612704811186,length_m,0.07879444106972316,m,,,,,
+esc,propulsion,4,0.04347820986972232,0.17391283947888928,max_power_W,1175.045880653017,outline_or_heat_sink,,,,,,,
+propeller,propulsion,4,0.1234168788992474,0.4936675155969896,diameter_m,0.5640667322694283,diameter_m,0.5640667322694283,m,,,,,
+frame_arms,structure,4,,,arm_length_m,0.39885541142944947,arm_length_m,0.39885541142944947,m,,,,,

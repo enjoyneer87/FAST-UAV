@@ -1,0 +1,6 @@
+component_id,part_family,required_perf_key,required_perf_min,required_perf_unit,quantity_source,default_quantity
+battery_pack,battery,energy,2315.56,kJ,fixed,1
+motor,motor,max_torque,1.91,Nm,from_bom,4
+esc,esc,max_power,1175.05,W,from_bom,4
+propeller,propeller,diameter,0.564,m,from_bom,4
+frame_arms,frame_arm,length,0.399,m,from_bom,4
