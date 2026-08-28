@@ -1,0 +1,10 @@
+# Motor raw material prices
+# Sources: LME (London Metal Exchange), USGS Mineral Commodity Summaries, InvestmentMine
+# Prices are indicative averages; use refresh_prices() utility to update from World Bank API
+# world_bank_indicator: World Bank commodity price indicator code (if available)
+material,price_usd_per_kg,year,source,world_bank_indicator,notes
+copper,9.50,2024,LME,PCOPP,"London Metal Exchange; cathode copper"
+ndfeb_magnet,85.0,2024,USGS+InvestmentMine,,"Sintered NdFeB magnet alloy (Nd2Fe14B); no direct WB indicator"
+electrical_steel,1.80,2024,World Steel Association,,"Silicon steel sheet (0.35mm); cold-rolled"
+aluminum,2.40,2024,LME,PALUM,"LME primary aluminum ingot"
+other,5.0,2024,estimated,,"Insulation/epoxy/misc; rough estimate"

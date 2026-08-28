@@ -1,0 +1,21 @@
+# Motor raw material supply risk indicators
+# Methodology: adapted from EU Critical Raw Materials Assessment (2023)
+#   and Graedel et al. (2012) "Methodology of Metal Criticality Determination"
+#
+# hhi                : Herfindahl-Hirschman Index for mine/primary production (0-10000)
+# main_producer      : Country with largest production share
+# main_producer_share: Main producer share of global supply (%)
+# wgi_score          : Normalized World Governance Indicator of main producer (0=worst, 1=best)
+#                      Source: World Bank WGI 2022
+# eu_critical_2023   : Listed as EU Critical Raw Material in 2023 assessment (bool)
+# substitutability   : Score 0-1 (1=fully substitutable with no performance loss)
+# recyclability      : End-of-life recycling input rate, 0-1
+#                      Source: UNEP 2011 "Recycling Rates of Metals"
+#
+# Sources: USGS Mineral Commodity Summaries 2024, EC CRM 2023, World Bank WGI 2022
+material,hhi,main_producer,main_producer_share_pct,wgi_score,eu_critical_2023,substitutability,recyclability,notes
+copper,1289,Chile,28,0.65,False,0.85,0.43,"Diversified supply; Chile/Peru/DRC top producers"
+ndfeb_magnet,8547,China,85,0.40,True,0.15,0.13,"China dominates RE mining & magnet production; Nd/Dy are EU CRMs"
+electrical_steel,642,China,53,0.40,False,0.75,0.55,"Diversified steel market; silicon steel dominated by Asia"
+aluminum,789,China,56,0.40,False,0.85,0.42,"Significant Chinese dominance; bauxite from Guinea/Australia"
+other,500,Various,30,0.55,False,0.50,0.20,"Misc materials (insulation/epoxy); low criticality assumed"
