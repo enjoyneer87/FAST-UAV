@@ -1,17 +1,61 @@
 import pandas as pd
 import numpy as np
 
+from fastuav.models.supply_chain.motor.material_composition import (
+    MotorMaterialComposition,
+)
+
 # ---------- Raw Material Model & Continuous Models ----------
-# Mass Fractions
+# Mass fractions for the procurement (post-processing) layer.
+#
+# The MOTOR row is deliberately absent here: it is owned by the in-loop
+# discipline model in ``supply_chain/motor/``. Keeping a second set of motor
+# fractions in this file meant one motor could be priced two ways -- the two
+# sets had drifted to copper 0.30 vs 0.25 and magnet 0.10 vs 0.12, and magnet
+# is the dominant cost driver at ~85 USD/kg. Use ``motor_composition()``.
 MATERIAL_COMPOSITION = {
     'battery_pack': {'Lithium': 0.03, 'Cobalt': 0.12, 'Nickel': 0.15, 'Graphite': 0.18, 'Copper': 0.11, 'Aluminum': 0.06, 'Electrolyte': 0.15, 'Plastic': 0.20},
-    'motor': {'Steel': 0.40, 'Copper': 0.30, 'Neodymium': 0.10, 'Aluminum': 0.20},
     'esc': {'Silicon': 0.20, 'Copper': 0.30, 'PCB': 0.30, 'Plastic': 0.20},
     'propeller': {'Carbon Fiber': 0.40, 'Nylon/Plastic': 0.60},
     'frame_arms': {'Carbon Fiber': 0.70, 'Epoxy': 0.25, 'Aluminum': 0.05},
     'structure': {'Carbon Fiber': 0.60, 'Epoxy': 0.30, 'Aluminum': 0.10},
     'default': {'Misc': 1.0}
 }
+
+# Material names used by the in-loop motor model, mapped onto the labels this
+# procurement layer reports on.
+_MOTOR_MATERIAL_LABELS = {
+    'f_copper': 'Copper',
+    'f_magnet': 'Neodymium',
+    'f_steel': 'Steel',
+    'f_aluminum': 'Aluminum',
+}
+
+
+def motor_composition(**overrides):
+    """
+    Motor mass fractions, taken from the in-loop discipline model.
+
+    Reads the declared defaults of :class:`MotorMaterialComposition` so the
+    procurement layer and the MDAO discipline can never disagree. Any option
+    of that component (``f_copper``, ``f_magnet``, ``f_steel``, ``f_aluminum``)
+    may be overridden per call, matching what was set in the model YAML.
+
+    The named fractions do not sum to 1 (defaults total 0.92); the discipline
+    model books the balance as an ``other`` output (insulation, epoxy,
+    fasteners). The same balance is returned here as ``'Other'`` so that
+    material mass still sums to the component mass -- dropping it would
+    silently understate ~8% of motor mass in the BOM.
+
+    :return: dict of {material label: mass fraction}
+    """
+    declared = MotorMaterialComposition().options
+    composition = {}
+    for opt, label in _MOTOR_MATERIAL_LABELS.items():
+        frac = overrides[opt] if opt in overrides else declared[opt]
+        composition[label] = float(frac)
+    composition['Other'] = max(0.0, 1.0 - sum(composition.values()))
+    return composition
 
 def estimate_continuous_cost(family, perf_val, perf_key):
     """
@@ -169,8 +213,12 @@ def run_supply_chain_scenario(
              if pd.notna(u_mass) and u_mass > 0: mass = u_mass * float(qty)
         
         if mass > 0:
-            comp_key = comp_id if comp_id in MATERIAL_COMPOSITION else (family if family in MATERIAL_COMPOSITION else 'default')
-            composition = MATERIAL_COMPOSITION.get(comp_key, MATERIAL_COMPOSITION['default'])
+            if comp_id == 'motor' or family == 'motor':
+                # Motor is owned by the in-loop discipline model
+                composition = motor_composition()
+            else:
+                comp_key = comp_id if comp_id in MATERIAL_COMPOSITION else (family if family in MATERIAL_COMPOSITION else 'default')
+                composition = MATERIAL_COMPOSITION.get(comp_key, MATERIAL_COMPOSITION['default'])
             for mat, frac in composition.items():
                 material_rows.append({
                     'component_id': comp_id,
