@@ -23,5 +23,20 @@
 /src/fastuav/notebooks/04_LCA.ipynb
 .python-version
 **/__pycache__/*.pyc
+**/__pycache__/
 *.venv\
 *.venv/
+
+# --- Regenerable local build / run artifacts (added 2026-08) ---
+# PyInstaller build of the notebooks app (run_app.exe, ~215 MB)
+/src/fastuav/notebooks/dist/
+/src/fastuav/notebooks/build/
+# Generated OpenMDAO report HTML (n2, inputs)
+/reports/
+# Local UQ scratch outputs
+/src/fastuav/notebooks/workdir_uq/
+# Generated plot exports dropped in the notebooks dir
+/src/fastuav/notebooks/*.png
+# Supply-chain DoE result exports (regenerated from the model)
+/src/fastuav/notebooks/data/source_files/supply_chain_cost_leadtime_summary.csv
+/src/fastuav/notebooks/data/source_files/supply_chain_selection_result.csv
