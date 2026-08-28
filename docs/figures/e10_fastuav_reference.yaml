@@ -1,0 +1,37 @@
+# ============================================================
+# FAST-UAV Reference Motor Parameters — e10Turn6V261
+# Source: e10Turn6V261.mot + SyreMMM_B.mat
+# ============================================================
+# NOTE: mass:reference는 플레이스홀더 (실제 드론 모터 .mot로 교체 예정)
+# NOTE: D_ext_reference는 고정자 외경 기준 (하우징 252mm / 고정자 198mm)
+
+# --- 기하 (Geometry) ---
+models:propulsion:motor:length:reference: 0.150          # m  (적층길이 Stator_Lam_Length=150mm)
+models:propulsion:motor:diameter:reference: 0.198        # m  (고정자외경 Stator_Lam_Dia=198mm)
+models:weight:propulsion:motor:mass:reference: 8.0       # kg (PLACEHOLDER — .mot에서 미확인, 추정값)
+
+# --- 전기 (Electrical) ---
+models:propulsion:motor:resistance:reference: 0.02175    # Ω  (상저항 @128.7°C)
+models:propulsion:motor:voltage:reference: 720.0         # V  (DC 버스)
+models:propulsion:motor:pole_pairs: 4.0                  # -  (8극 → 극쌍수 4)
+
+# --- 토크 (Torque) ---
+models:propulsion:motor:torque:reference: 259.6          # Nm (정격토크)
+
+# --- 철손 (Iron Loss) — from IronPMLossMap_dq @ n0=500rpm ---
+models:propulsion:motor:iron:Ph_ref: 1.0801              # W  (이력손실  Pfes_h+Pfer_h 평균)
+models:propulsion:motor:iron:Pc_ref: 0.0046              # W  (와전류손실 Pfes_c+Pfer_c 평균)
+models:propulsion:motor:iron:Ppm_ref: 2.2484             # W  (PM 와전류손실 Ppm 평균)
+models:propulsion:motor:iron:n0: 500.0                   # rpm (철손 기준속도)
+models:propulsion:motor:iron:segPM: 1.0                  # -  (PM 분절계수 기본값)
+
+# --- 속도 스케일링 참고 (철손, f_ratio = n/n0 = n/500) ---
+# P_fer(n,m) = (m/m_ref) * [1.08*(n/500)^1 + (0.0046 + 2.25)*(n/500)^2]  [W]
+# @ 3000rpm: ~87W / @ 6000rpm: ~337W  (기준 모터 기준)
+
+# ============================================================
+# 실제 드론 외전형 BLDC 모터 교체 시:
+#   1. 새 .mot 파일 → fromMCAD_lab_json() 실행
+#   2. IronPMLossMap_dq 재추출 → Ph_ref, Pc_ref, Ppm_ref, n0 업데이트
+#   3. 기하/전기 파라미터 업데이트 (length, diameter, mass, resistance)
+# ============================================================
